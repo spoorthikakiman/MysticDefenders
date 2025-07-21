@@ -69,6 +69,15 @@ def pause_text():
     screen.blit(pause_pause,(190,250))
     screen.blit(resume,(300,320))
 
+#pause image
+pauseImg = pygame.image.load('pause.png')
+pause_rect = pauseImg.get_rect(topleft=(750, 10))
+playImg = pygame.image.load('play.png')
+def pauseI():
+    screen.blit(pauseImg,pause_rect)
+def playI():
+    screen.blit(playImg,pause_rect)
+
 def show_score(x,y):
     score = font.render("Score : " + str(score_value),True,(87,49,110))
     screen.blit(score,(x,y))
@@ -117,7 +126,9 @@ while running:
                     fire_sword(swordX,swordY)
             if event.key == pygame.K_p:
                 paused = not paused
-
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if pause_rect.collidepoint(event.pos):
+                paused = not paused
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                 playerX_change = 0
@@ -167,10 +178,16 @@ while running:
         if swordY <= 0 :
             sword_state = "ready"
             swordY = 480
+
+        #pause feature display
+        pauseI()
     if paused:
         pause_text()
+        playI()
+
 
 
     player(playerX,playerY)
     show_score(textx,texty)
+
     pygame.display.update()
