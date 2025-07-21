@@ -46,7 +46,7 @@ swordImg = pygame.image.load('sword.png')
 swordX = 0
 swordY = 490
 swordX_change = 0
-swordY_change = 0.5
+swordY_change = 1
 sword_state = "ready"
 
 #score part
@@ -60,6 +60,14 @@ over_font = pygame.font.Font('Muocas Display Serif.otf',64)
 def game_over_text():
     game_over = over_font.render("GAME OVERRR <3", True,(87,49,110))
     screen.blit(game_over,(190,250))
+
+#pause text
+resume_font = pygame.font.Font('Muocas Display Serif.otf',20)
+def pause_text():
+    pause_pause = over_font.render("GAME PAUSED :(", True, (87,49,110))
+    resume = resume_font.render("Click P to resume !!!!",True,(87,49,110))
+    screen.blit(pause_pause,(190,250))
+    screen.blit(resume,(300,320))
 
 def show_score(x,y):
     score = font.render("Score : " + str(score_value),True,(87,49,110))
@@ -78,13 +86,14 @@ def fire_sword(x,y):
 
 def isCollision(enemyX, enemyY, swordX, swordY):
     distance = math.sqrt((math.pow(enemyX-swordX,2)) + (math.pow(enemyY - swordY,2)))
-    if distance < 40:
+    if distance < 45:
         return True
     else:
         return False
 
 # Game loop
 running = True
+paused = False
 while running:
 
     # RGB for screen color
@@ -106,55 +115,60 @@ while running:
                     sword_sound.play()
                     swordX = playerX
                     fire_sword(swordX,swordY)
+            if event.key == pygame.K_p:
+                paused = not paused
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                 playerX_change = 0
 
     #Player boundary
-    playerX += playerX_change
-    if playerX <= 0:
-        playerX = 0
-    elif playerX >= 736:
-        playerX = 736
+    if not paused:
+        playerX += playerX_change
+        if playerX <= 0:
+            playerX = 0
+        elif playerX >= 736:
+            playerX = 736
 
-    #enemy boundary
-    for i in range(num_of_enemies):
-        #game over
-        if enemyY[i] > 450:
-            for j in range(num_of_enemies):
-                enemyY[j] = 2000
-            game_over_text()
-            break
+        #enemy boundary
+        for i in range(num_of_enemies):
+            #game over
+            if enemyY[i] > 450:
+                for j in range(num_of_enemies):
+                    enemyY[j] = 2000
+                game_over_text()
+                break
 
 
-        enemyX[i] += enemyX_change[i]
-        if enemyX[i] <= 0:
-            enemyX_change[i] = 0.3
-            enemyY[i] += enemyY_change[i]
-        elif enemyX[i] >= 736:
-            enemyX_change[i] = -0.3
-            enemyY[i] += enemyY_change[i]
+            enemyX[i] += enemyX_change[i]
+            if enemyX[i] <= 0:
+                enemyX_change[i] = 0.3
+                enemyY[i] += enemyY_change[i]
+            elif enemyX[i] >= 736:
+                enemyX_change[i] = -0.3
+                enemyY[i] += enemyY_change[i]
 
-        # collision his
-        collision = isCollision(enemyX[i], enemyY[i], swordX, swordY)
-        if collision:
-            kill_sound = mixer.Sound('kill.wav')
-            kill_sound.play()
-            swordY = 490
+            # collision his
+            collision = isCollision(enemyX[i], enemyY[i], swordX, swordY)
+            if collision:
+                kill_sound = mixer.Sound('kill.wav')
+                kill_sound.play()
+                swordY = 490
+                sword_state = "ready"
+                score_value += 1
+                enemyX[i] = random.randint(0, 736)
+                enemyY[i] = random.randint(30, 130)
+            enemy(enemyX[i], enemyY[i], i)
+
+        #sword movement
+        if sword_state == "fire" :
+            fire_sword(swordX,swordY)
+            swordY -= swordY_change
+        if swordY <= 0 :
             sword_state = "ready"
-            score_value += 1
-            enemyX[i] = random.randint(0, 736)
-            enemyY[i] = random.randint(30, 130)
-        enemy(enemyX[i], enemyY[i], i)
-
-    #sword movement
-    if sword_state == "fire" :
-        fire_sword(swordX,swordY)
-        swordY -= swordY_change
-    if swordY <= 0 :
-        sword_state = "ready"
-        swordY = 480
+            swordY = 480
+    if paused:
+        pause_text()
 
 
     player(playerX,playerY)
